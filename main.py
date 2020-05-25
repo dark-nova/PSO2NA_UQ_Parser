@@ -1,10 +1,10 @@
-from typing import Tuple
-
 import re
+from typing import Tuple
 
 import pendulum
 import requests
 from bs4 import BeautifulSoup
+from more_itertools import grouper
 
 
 example_main = 'example-urgent_quests.html'
@@ -71,25 +71,41 @@ def is_not_uq(uq: str) -> bool:
 def parse_uq_sched(soup: BeautifulSoup):
     schedule = {}
     tables = soup.find('div', 'emergency cms')
-    for table in tables.find_all('table'):
-        rows = table.find_all('tr')
+    for table_a, table_b in grouper(tables.find_all('table'), 2):
+        rows = table_a.find_all('tr')
         cols = rows[0].find_all('td')
-        # Special case: 2nd table of example-urgent_quest-2020-02.html
         if len(cols) == 1:
             rows.pop(0)
             cols = rows[0].find_all('td')
         # Special case: example-urgent_quest-2020-02.html
         if len(cols) == 2:
-            year, month, day = parse_special_date(table.previous_sibling.text)
-            for row in rows[1:]:
-                time, uq = [tag.text for tag in row.find_all('td')]
-                if is_not_uq(uq):
-                    continue
-                hour = parse_time(time)
-                dt = pendulum.datetime(year, month, day, hour)
-                schedule[dt] = uq
+            for table in [table_a, table_b]:
+                rows = table.find_all('tr')
+                cols = rows[0].find_all('td')
+                # Special case: 2nd table of example-urgent_quest-2020-02.html
+                if len(cols) == 1:
+                    rows.pop(0)
+                    cols = rows[0].find_all('td')
+                year, month, day = parse_special_date(
+                    table.previous_sibling.text
+                    )
+                for row in rows[1:]:
+                    time, uq = [tag.text.strip() for tag in row.find_all('td')]
+                    # Special case:
+                    #   2nd table of example-urgent_quest-2020-02.html
+                    if time == 'Time (PST)':
+                        continue
+                    if is_not_uq(uq):
+                        continue
+                    hour = parse_time(time)
+                    dt = pendulum.datetime(year, month, day, hour)
+                    schedule[dt] = uq
         else:
-            dates = [parse_date(col.text.split('/')) for col in cols]
+            print(cols[1].text.split('/'))
+            dates = [
+                parse_date(*[int(n) for n in col.text.split('/')])
+                for col in cols[1:]
+                ]
 
     return schedule
 
