@@ -1,4 +1,5 @@
 import re
+import sqlite3
 from typing import Dict, List, Tuple, Union
 
 import pendulum
@@ -94,17 +95,26 @@ def get_uq_from_tile(tile: Tag, colors: Dict[str, str]) -> Union[str, None]:
 
 
 def get_hex_color_from_tile(tile: Tag) -> str:
-    """Get a HEX color from the tile background."""
+    """Get a HEX color from the tile background, or if the background
+    color is "red", just "red".
+
+    Args:
+        tile (Tag): a <td> element containing only a color
+
+    """
     for attr in tile['style'].split(';'):
         if not attr:
             continue
         a, value = attr.split(':')
         if a == 'background':
-            print(value)
-            rgb = '#' + ''.join(
-                [hex(int(n))[2:] for n in RGB.search(value).group(1, 2, 3)]
-                ).upper()
-            return rgb
+            match = RGB.search(value)
+            if match:
+                rgb = '#' + ''.join(
+                    [hex(int(n))[2:] for n in match.group(1, 2, 3)]
+                    ).upper()
+                return rgb
+            else:
+                return value.strip() # This is horrifying. Hard-coded colors.
 
 
 def get_colors_from_table(table: Tag) -> Dict[str, str]:
@@ -130,6 +140,7 @@ class UQSchedule:
                 defaults to None
 
         """
+        self.url = url
         if url:
             page = requests.get(url)
             self.soup = BeautifulSoup(page.text, 'html.parser')
@@ -210,16 +221,21 @@ class UQSchedule:
         config.CURSOR.execute('SELECT DATE FROM UQ')
         dates = config.CURSOR.fetchall()
         for date, uq in self.schedule.items():
-            if date in dates:
+            try:
+                config.CURSOR.execute(
+                    'INSERT INTO UQ VALUES (?, ?)',
+                    (str(date), uq)
+                    )
+            except sqlite3.IntegrityError:
                 config.LOGGER.info(
                     f'{date} (UQ: {uq}) was found in the DB! Skipped.'
                     )
                 continue
-            config.CURSOR.execute(
-                'INSERT INTO UQ VALUES (?, ?)',
-                (str(date), uq)
-                )
-        config.DB.commit()
+
+        if self.url:
+            config.DB.commit()
+        else:
+            print('Example results:', self.schedule)
 
 
 
