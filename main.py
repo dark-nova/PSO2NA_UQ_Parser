@@ -9,8 +9,8 @@ from more_itertools import grouper
 
 example_main = 'example-urgent_quests.html'
 example_scheds = [
-    '2020-02',
-    #'2020-03',
+    #'2020-02',
+    '2020-03',
     #'2020-05_3',
     #'about',
     ]
@@ -58,15 +58,25 @@ def parse_special_date(date: str) -> pendulum.datetime:
     return parse_date(month, day)
 
 
-def parse_time(time: str) -> Tuple[int, int]:
-    """Parse time like "0:00 - 0:30am" and retrieve the time in 24h."""
-    start, end = [TIME.search(t).group(0) for t in time.split(' – ')]
-    hour, minute = [int(n) for n in start.split(':')]
+def convert_time(time: str, ampm: str) -> Tuple[int, int]:
+    """Convert time given "HH:MM" to 24h format."""
+    hour, minute = [int(n) for n in time.split(':')]
     hour %= 12
-    ampm = AMPM.search(end).group(0)
     if ampm == 'pm':
         hour += 12
     return hour, minute
+
+
+def parse_time(time: str) -> Tuple[int, int]:
+    """Parse time like "1:00 AM" and convert."""
+    time, ampm = time.split(' ')
+    return convert_time(time, ampm.lower())
+
+
+def parse_time_range(time: str) -> Tuple[int, int]:
+    """Parse time like "0:00 - 0:30am" and convert."""
+    start, end = [TIME.search(t).group(0) for t in time.split(' – ')]
+    return convert_time(start, AMPM.search(end).group(0))
 
 
 def is_not_uq(uq: str) -> bool:
@@ -106,7 +116,7 @@ def parse_only_tables(tables: List[Tag]) -> Dict[pendulum.datetime, str]:
                 continue
             if is_not_uq(uq):
                 continue
-            hour, minute = parse_time(time)
+            hour, minute = parse_time_range(time)
             dt = pendulum.datetime(year, month, day, hour, minute)
             schedule[dt] = uq
     return schedule
@@ -133,7 +143,7 @@ def parse_uq_sched(soup: BeautifulSoup):
                 ]
             # Skip the 2nd row (days of the week) and 3rd row ("Time (PDT)").
             for row in rows[3:]:
-                print(row)
+                print(row.text)
 
     return schedule
 
