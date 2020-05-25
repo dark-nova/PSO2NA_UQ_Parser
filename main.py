@@ -8,7 +8,12 @@ from more_itertools import grouper
 
 
 example_main = 'example-urgent_quests.html'
-example_sched = 'example-urgent_quest-2020-02.html'
+example_scheds = [
+    '2020-02',
+    '2020-03',
+    '2020-05_3',
+    'about',
+    ]
 
 today = pendulum.today()
 
@@ -29,8 +34,8 @@ NOT_UQ = [
     ]
 
 
-def open_example_uq_sched() -> BeautifulSoup:
-    with open(example_sched, 'r') as example:
+def open_example_uq_sched(schedule: str) -> BeautifulSoup:
+    with open(f'example-urgent_quest-{schedule}.html', 'r') as example:
         soup = BeautifulSoup(example, 'html.parser')
     return soup
 
@@ -101,7 +106,6 @@ def parse_uq_sched(soup: BeautifulSoup):
                     dt = pendulum.datetime(year, month, day, hour)
                     schedule[dt] = uq
         else:
-            print(cols[1].text.split('/'))
             dates = [
                 parse_date(*[int(n) for n in col.text.split('/')])
                 for col in cols[1:]
@@ -111,5 +115,6 @@ def parse_uq_sched(soup: BeautifulSoup):
 
 
 if __name__ == '__main__':
-    soup = open_example_uq_sched()
-    print(parse_uq_sched(soup))
+    for schedule in example_scheds:
+        soup = open_example_uq_sched(schedule)
+        print(parse_uq_sched(soup))
