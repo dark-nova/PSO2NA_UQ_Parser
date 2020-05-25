@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 import pendulum
 import requests
@@ -24,6 +24,7 @@ MONTHS = [
     ]
 
 N = re.compile(r'[0-9]+')
+RGB = re.compile(r'([0-9]+), ([0-9]+), ([0-9]+)')
 TIME = re.compile(r'[0-9]{1,2}:[0-9][0-9]([ap]m)?', re.I)
 AMPM = re.compile(r'[ap]m', re.I)
 
@@ -84,6 +85,42 @@ def is_not_uq(uq: str) -> bool:
     return uq in NOT_UQ
 
 
+def get_hex_color_from_tile(tile: Tag) -> str:
+    """Get a HEX color from the tile background."""
+    for attr in tile['style'].split(';'):
+        if not attr:
+            continue
+        a, value = attr.split(':')
+        if a == 'background':
+            rgb = '#' + ''.join(
+                [hex(int(n))[2:] for n in RGB.search(value).group(1, 2, 3)]
+                ).upper()
+            return rgb
+
+
+def get_colors_from_table(table: Tag) -> Dict[str, str]:
+    """Map a color from RGB to HEX to its UQ."""
+    colors = {}
+    for row in table.find_all('tr'):
+        col_color, col_uq = row.find_all('td')
+        color = get_hex_color_from_tile(col_color)
+        colors[color] = col_uq.text.replace('\xa0', ' ')
+
+    return colors
+
+def get_uq_from_tile(tile: Tag, colors: Dict[str, str]) -> Union[str, None]:
+    """Get a UQ from a tile given the tile's color."""
+    for attr in tile['style'].split(';'):
+        if not attr:
+            continue
+        a, value = attr.split(':')
+        if a == 'background':
+            try:
+                return colors[value]
+            except KeyError:
+                return
+
+
 def parse_only_tables(tables: List[Tag]) -> Dict[pendulum.datetime, str]:
     """Parse a table, ignoring any color code. Used in 2020-02.
 
@@ -142,8 +179,18 @@ def parse_uq_sched(soup: BeautifulSoup):
                 for col in cols[1:]
                 ]
             # Skip the 2nd row (days of the week) and 3rd row ("Time (PDT)").
+            color_map = get_colors_from_table(table_b)
             for row in rows[3:]:
-                print(row.text)
+                time = parse_time(row.find('td').text)
+                for i, tile in enumerate(row.find_all('td')[1:]):
+                    uq = get_uq_from_tile(tile, color_map)
+                    if not uq:
+                        continue
+                    schedule[
+                        pendulum.datetime(
+                            *(dates[i] + time), tz='America/Los_Angeles'
+                            )
+                        ] = uq
 
     return schedule
 
