@@ -35,7 +35,7 @@ DB = sqlite3.Connection('news.db')
 CURSOR = DB.cursor()
 
 SCHEMA = {
-    'UQ': '(DATE TEXT UNIQUE, NAME TEXT)'
+    'UQ': '(DATE TEXT UNIQUE, NAME TEXT, TITLE TEXT)'
     }
 
 for table, schema in SCHEMA.items():

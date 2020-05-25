@@ -1,5 +1,6 @@
 import re
 import sqlite3
+from time import sleep
 from typing import Dict, List, Tuple, Union
 
 import pendulum
@@ -12,8 +13,8 @@ import config
 
 EXAMPLE_MAIN = 'example-urgent_quests.html'
 EXAMPLE_SCHEDS = [
-    #'2020-02',
-    #'2020-03',
+    '2020-02',
+    '2020-03',
     '2020-05_3',
     'about',
     ]
@@ -131,23 +132,28 @@ def get_colors_from_table(table: Tag) -> Dict[str, str]:
 class UQSchedule:
     """Represents a schedule page for Urgent Quests."""
 
-    def __init__(self, url_or_file: str, *, url: bool = True) -> None:
+    def __init__(
+        self, url_or_file: str, *, title: str = None, url: bool = True
+        ) -> None:
         """Initialize the schedule parser with a URL or local file.
 
         Args:
             url_or_file (str): the URL or local file of a UQ schedule
+            title (str, optional): the title of the schedule;
+                defaults to None
             url (bool, optional): is url_or_file a URL?
                 defaults to None
 
         """
+        config.LOGGER.info(f'Initializing UQSchedule @ {url_or_file}')
+        self.title = title
         self.url = url
         if url:
-            page = requests.get(url)
+            page = requests.get(url_or_file)
             self.soup = BeautifulSoup(page.text, 'html.parser')
         else:
             with open(f'example-urgent_quest-{schedule}.html', 'r') as example:
                 self.soup = BeautifulSoup(example, 'html.parser')
-
 
     def parse(self) -> None:
         """Parse the page and convert into database entries."""
@@ -223,13 +229,13 @@ class UQSchedule:
         for date, uq in self.schedule.items():
             try:
                 config.CURSOR.execute(
-                    'INSERT INTO UQ VALUES (?, ?)',
-                    (str(date), uq)
+                    'INSERT INTO UQ VALUES (?, ?, ?)',
+                    (str(date), uq, self.title)
                     )
             except sqlite3.IntegrityError:
-                config.LOGGER.info(
-                    f'{date} (UQ: {uq}) was found in the DB! Skipped.'
-                    )
+                # config.LOGGER.info(
+                #     f'{date} (UQ: {uq}) was found in the DB! Skipped.'
+                #     )
                 continue
 
         if self.url:
@@ -238,8 +244,47 @@ class UQSchedule:
             print('Example results:', self.schedule)
 
 
+class UQMainPage:
+    """Represents the main news page for Urgent Quests."""
+
+    URL = 'https://pso2.com/news/urgent-quests'
+
+    def __init__(self, url: bool = True) -> None:
+        """Initialize main page for scraping.
+
+        Args:
+            url (bool, optional): are we using the real URL?
+                defaults to None
+
+        """
+        config.LOGGER.info('Initializing UQMainPage...')
+        self.url = url
+        if url:
+            page = requests.get(self.URL)
+            self.soup = BeautifulSoup(page.text, 'html.parser')
+        else:
+            with open(EXAMPLE_MAIN, 'r') as example:
+                self.soup = BeautifulSoup(example, 'html.parser')
+
+    def parse(self):
+        """Parse the page to find individual schedules."""
+        news = self.soup.find('div', 'all-news-section')
+        for schedule in news.find_all('div', 'content'):
+            title = schedule.find('h3', 'title').text
+            link = schedule.find('a', 'read-more')
+            if not self.url:
+                print('Example schedule title:', title)
+                continue
+            sched_link = link['onclick'].split("'")[1]
+            sleep(10)
+            s = UQSchedule(f'{self.URL}/{sched_link}', title=title)
+            s.parse()
+
 
 if __name__ == '__main__':
     for schedule in EXAMPLE_SCHEDS:
         s = UQSchedule(schedule, url=False)
         s.parse()
+        sleep(2)
+    mp = UQMainPage(url=False)
+    mp.parse()
