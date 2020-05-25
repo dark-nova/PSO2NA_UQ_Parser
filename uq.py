@@ -1,5 +1,6 @@
 import re
 import sqlite3
+from math import ceil
 from time import sleep
 from typing import Dict, List, Tuple, Union
 
@@ -15,6 +16,7 @@ EXAMPLE_MAIN = 'example-urgent_quests.html'
 EXAMPLE_SCHEDS = [
     '2020-02',
     '2020-03',
+    '2020-05_1',
     '2020-05_3',
     'about',
     ]
@@ -90,7 +92,7 @@ def get_uq_from_tile(tile: Tag, colors: Dict[str, str]) -> Union[str, None]:
         a, value = attr.split(':')
         if a == 'background':
             try:
-                return colors[value]
+                return colors[value.strip()]
             except KeyError:
                 return
 
@@ -162,6 +164,7 @@ class UQSchedule:
         for table_a, table_b in grouper(tables.find_all('table'), 2):
             rows = table_a.find_all('tr')
             cols = rows[0].find_all('td')
+            width = float(cols[1]['width'].strip('%'))
             if len(cols) == 1:
                 rows.pop(0)
                 cols = rows[0].find_all('td')
@@ -178,14 +181,21 @@ class UQSchedule:
                 # Skip row 2 (days of the week) and row 3 ("Time (PDT)").
                 color_map = get_colors_from_table(table_b)
                 for row in rows[3:]:
-                    time = parse_time(row.find('td').text)
-                    for i, tile in enumerate(row.find_all('td')[1:]):
+                    widths = 0
+                    try:
+                        time = parse_time(row.find('td').text)
+                    except ValueError:
+                         # Some tables have empty rows under the table. Why.
+                         continue
+                    for tile in row.find_all('td')[1:]:
                         uq = get_uq_from_tile(tile, color_map)
+                        widths += float(tile['width'].strip('%'))
                         if not uq:
                             continue
                         self.schedule[
                             pendulum.datetime(
-                                *(dates[i] + time), tz='America/Los_Angeles'
+                                *(dates[ceil(widths/width) - 1] + time),
+                                tz='America/Los_Angeles'
                                 )
                             ] = uq
 
