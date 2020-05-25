@@ -9,4 +9,5 @@
 # Project-specific files
 uq.rss
 news.db
-new.log
+news.log
+news.log.[1-5]
