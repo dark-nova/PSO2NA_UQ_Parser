@@ -84,9 +84,9 @@ def is_not_uq(uq: str) -> bool:
     return uq in NOT_UQ
 
 
-def get_uq_from_tile(tile: Tag, colors: Dict[str, str]) -> Union[str, None]:
-    """Get a UQ from a tile given the tile's color."""
-    for attr in tile['style'].split(';'):
+def get_uq_from_cell(cell: Tag, colors: Dict[str, str]) -> Union[str, None]:
+    """Get a UQ from a cell given the cell's color."""
+    for attr in cell['style'].split(';'):
         if not attr:
             continue
         a, value = attr.split(':')
@@ -97,15 +97,15 @@ def get_uq_from_tile(tile: Tag, colors: Dict[str, str]) -> Union[str, None]:
                 return
 
 
-def get_hex_color_from_tile(tile: Tag) -> str:
-    """Get a HEX color from the tile background, or if the background
+def get_hex_color_from_cell(cell: Tag) -> str:
+    """Get a HEX color from the cell background, or if the background
     color is "red", just "red".
 
     Args:
-        tile (Tag): a <td> element containing only a color
+        cell (Tag): a <td> element containing only a color
 
     """
-    for attr in tile['style'].split(';'):
+    for attr in cell['style'].split(';'):
         if not attr:
             continue
         a, value = attr.split(':')
@@ -125,7 +125,7 @@ def get_colors_from_table(table: Tag) -> Dict[str, str]:
     colors = {}
     for row in table.find_all('tr'):
         col_color, col_uq = row.find_all('td')
-        color = get_hex_color_from_tile(col_color)
+        color = get_hex_color_from_cell(col_color)
         colors[color] = col_uq.text.replace('\xa0', ' ')
 
     return colors
@@ -187,9 +187,9 @@ class UQSchedule:
                     except ValueError:
                          # Some tables have empty rows under the table. Why.
                          continue
-                    for tile in row.find_all('td')[1:]:
-                        uq = get_uq_from_tile(tile, color_map)
-                        widths += float(tile['width'].strip('%'))
+                    for cell in row.find_all('td')[1:]:
+                        uq = get_uq_from_cell(cell, color_map)
+                        widths += float(cell['width'].strip('%'))
                         if not uq:
                             continue
                         self.schedule[
