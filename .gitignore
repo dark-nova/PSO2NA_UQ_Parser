@@ -7,3 +7,5 @@
 *.pyc
 
 # Project-specific files
+uq.rss
+news.db
