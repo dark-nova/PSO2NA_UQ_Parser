@@ -2,6 +2,8 @@ import logging
 import logging.handlers
 import sqlite3
 
+import pendulum
+
 
 LOGGER = logging.getLogger('pso2_news')
 LOGGER.setLevel(logging.DEBUG)
@@ -30,12 +32,15 @@ CH.setFormatter(
 LOGGER.addHandler(FH)
 LOGGER.addHandler(CH)
 
+TODAY = pendulum.today()
+NOW = pendulum.now()
+
 
 DB = sqlite3.Connection('news.db')
 CURSOR = DB.cursor()
 
 SCHEMA = {
-    'UQ': '(DATE TEXT UNIQUE, NAME TEXT, TITLE TEXT)'
+    'UQ': '(DATE TEXT UNIQUE, NAME TEXT, TITLE TEXT, URL TEXT)'
     }
 
 for table, schema in SCHEMA.items():

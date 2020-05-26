@@ -32,3 +32,4 @@ These files are generated/updated every X.
 This project is not affiliated with or endorsed by *[SEGA][SEGA]* or *[Microsoft][MICROSOFT]*. See [LICENSE](LICENSE) for more detail.
 
 [SEGA]: https://www.sega.com/
+[MICROSOFT]: https://www.microsoft.com/

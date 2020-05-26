@@ -21,7 +21,6 @@ EXAMPLE_SCHEDS = [
     'about',
     ]
 
-TODAY = pendulum.today()
 
 MONTHS = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -43,10 +42,10 @@ NOT_UQ = [
 def parse_date(month: int, day: int) -> Tuple[int, int, int]:
     """Parse a date given month and day only and convert to
     a tuple."""
-    if month < TODAY.month:
-        year = TODAY.year #+ 1
+    if month < config.TODAY.month:
+        year = config.TODAY.year #+ 1
     else:
-        year = TODAY.year
+        year = config.TODAY.year
     return year, month, day
 
 
@@ -135,7 +134,7 @@ class UQSchedule:
     """Represents a schedule page for Urgent Quests."""
 
     def __init__(
-        self, url_or_file: str, *, title: str = None, url: bool = True
+        self, url_or_file: str, *, title: str = None, is_url: bool = True
         ) -> None:
         """Initialize the schedule parser with a URL or local file.
 
@@ -143,14 +142,15 @@ class UQSchedule:
             url_or_file (str): the URL or local file of a UQ schedule
             title (str, optional): the title of the schedule;
                 defaults to None
-            url (bool, optional): is url_or_file a URL?
+            is_url (bool, optional): is url_or_file a URL?
                 defaults to None
 
         """
         config.LOGGER.info(f'Initializing UQSchedule @ {url_or_file}')
         self.title = title
-        self.url = url
-        if url:
+        self.is_url = is_url
+        self.url = url_or_file
+        if is_url:
             page = requests.get(url_or_file)
             self.soup = BeautifulSoup(page.text, 'html.parser')
         else:
@@ -239,8 +239,8 @@ class UQSchedule:
         for date, uq in self.schedule.items():
             try:
                 config.CURSOR.execute(
-                    'INSERT INTO UQ VALUES (?, ?, ?)',
-                    (str(date), uq, self.title)
+                    'INSERT INTO UQ VALUES (?, ?, ?, ?)',
+                    (str(date), uq, self.title, self.url)
                     )
             except sqlite3.IntegrityError:
                 # config.LOGGER.info(
@@ -248,7 +248,7 @@ class UQSchedule:
                 #     )
                 continue
 
-        if self.url:
+        if self.is_url:
             config.DB.commit()
         else:
             print('Example results:', self.schedule)
@@ -259,17 +259,17 @@ class UQMainPage:
 
     URL = 'https://pso2.com/news/urgent-quests'
 
-    def __init__(self, url: bool = True) -> None:
+    def __init__(self, is_url: bool = True) -> None:
         """Initialize main page for scraping.
 
         Args:
-            url (bool, optional): are we using the real URL?
+            is_url (bool, optional): are we using the real URL?
                 defaults to None
 
         """
         config.LOGGER.info('Initializing UQMainPage...')
-        self.url = url
-        if url:
+        self.is_url = is_url
+        if is_url:
             page = requests.get(self.URL)
             self.soup = BeautifulSoup(page.text, 'html.parser')
         else:
@@ -282,7 +282,7 @@ class UQMainPage:
         for schedule in news.find_all('div', 'content'):
             title = schedule.find('h3', 'title').text
             link = schedule.find('a', 'read-more')
-            if not self.url:
+            if not self.is_url:
                 print('Example schedule title:', title)
                 continue
             sched_link = link['onclick'].split("'")[1]
@@ -293,8 +293,8 @@ class UQMainPage:
 
 if __name__ == '__main__':
     for schedule in EXAMPLE_SCHEDS:
-        s = UQSchedule(schedule, url=False)
+        s = UQSchedule(schedule, is_url=False)
         s.parse()
         sleep(2)
-    mp = UQMainPage(url=False)
+    mp = UQMainPage(is_url=False)
     mp.parse()
