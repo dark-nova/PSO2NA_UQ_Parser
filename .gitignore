@@ -7,7 +7,7 @@
 *.pyc
 
 # Project-specific files
-uq.rss
+uq.xml
 news.db
 news.log
 news.log.[1-5]
