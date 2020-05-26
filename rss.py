@@ -48,6 +48,7 @@ class UQRSS:
             entry.author(AUTHOR)
             #entry.description(uq)
             entry.link(href=url)
+            entry.guid(f'{dt_str}/{uq}')
             entry.pubDate(pendulum.parse(dt_str))
 
     def write_feed(self) -> None:
