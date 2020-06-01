@@ -130,7 +130,7 @@ def get_colors_from_table(table: Tag) -> Dict[str, str]:
     return colors
 
 
-class UQSchedule:
+class Schedule:
     """Represents a schedule page for Urgent Quests."""
 
     def __init__(
@@ -146,7 +146,7 @@ class UQSchedule:
                 defaults to None
 
         """
-        config.LOGGER.info(f'Initializing UQSchedule @ {url_or_file}')
+        config.LOGGER.info(f'Initializing Schedule @ {url_or_file}')
         self.title = title
         self.is_url = is_url
         self.url = url_or_file
@@ -254,7 +254,7 @@ class UQSchedule:
             print('Example results:', self.schedule)
 
 
-class UQMainPage:
+class MainPage:
     """Represents the main news page for Urgent Quests."""
 
     URL = 'https://pso2.com/news/urgent-quests'
@@ -267,7 +267,7 @@ class UQMainPage:
                 defaults to None
 
         """
-        config.LOGGER.info('Initializing UQMainPage...')
+        config.LOGGER.info('Initializing MainPage...')
         self.is_url = is_url
         if is_url:
             page = requests.get(self.URL)
@@ -287,14 +287,14 @@ class UQMainPage:
                 continue
             sched_link = link['onclick'].split("'")[1]
             sleep(10)
-            s = UQSchedule(f'{self.URL}/{sched_link}', title=title)
+            s = Schedule(f'{self.URL}/{sched_link}', title=title)
             s.parse()
 
 
 if __name__ == '__main__':
     for schedule in EXAMPLE_SCHEDS:
-        s = UQSchedule(schedule, is_url=False)
+        s = Schedule(schedule, is_url=False)
         s.parse()
         sleep(2)
-    mp = UQMainPage(is_url=False)
+    mp = MainPage(is_url=False)
     mp.parse()
