@@ -46,3 +46,7 @@ SCHEMA = {
 for table, schema in SCHEMA.items():
     CURSOR.execute('CREATE TABLE IF NOT EXISTS {0} {1}'.format(table, schema))
     DB.commit()
+
+
+CURSOR.execute('SELECT * FROM UQ')
+RESULTS = sorted(config.CURSOR.fetchall(), reverse=True)

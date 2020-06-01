@@ -275,12 +275,19 @@ class MainPage:
         else:
             with open(EXAMPLE_MAIN, 'r') as example:
                 self.soup = BeautifulSoup(example, 'html.parser')
+        try:
+            self.last_schedule = config.RESULTS[0][2]
+        except TypeError:
+            self.last_schedule = None
 
     def parse(self):
         """Parse the page to find individual schedules."""
         news = self.soup.find('div', 'all-news-section')
         for schedule in news.find_all('div', 'content'):
             title = schedule.find('h3', 'title').text
+            if title == self.last_schedule:
+                config.LOGGER.info('Found a matching schedule; stopped.')
+                return
             link = schedule.find('a', 'read-more')
             if not self.is_url:
                 print('Example schedule title:', title)

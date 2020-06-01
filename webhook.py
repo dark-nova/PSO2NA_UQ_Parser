@@ -66,17 +66,16 @@ def search_events() -> None:
     later.
 
     """
-    config.CURSOR.execute('SELECT * FROM UQ')
-    results = sorted(config.CURSOR.fetchall(), reverse=True)
     if LAST:
-        index = [dt_str for dt_str, uq, title, url in  results].index(LAST)
-        dt_str, uq, title, url = results[index - 1]
+        dt_strs = [dt_str for dt_str, uq, title, url in config.RESULTS]
+        index = dt_strs.index(LAST)
+        dt_str, uq, title, url = config.RESULTS[index - 1]
         dt = pendulum.parse(dt_str)
         if config.NOW <= dt <= NEXT:
             execute_webhook(dt, uq, url)
             return
     else:
-        for dt_str, uq, title, url in results:
+        for dt_str, uq, title, url in config.RESULTS:
             dt = pendulum.parse(dt_str)
             # In reverse chronological order, some events may be ahead.
             # Those events should be ignored.
