@@ -49,4 +49,4 @@ for table, schema in SCHEMA.items():
 
 
 CURSOR.execute('SELECT * FROM UQ')
-RESULTS = sorted(config.CURSOR.fetchall(), reverse=True)
+RESULTS = sorted(CURSOR.fetchall(), reverse=True)
