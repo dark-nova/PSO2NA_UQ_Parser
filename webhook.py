@@ -15,7 +15,7 @@ URL = 'https://discord.com/api/webhooks'
 MESSAGE = """
 Time: **{0}** (less than 30 minutes)
 
-Read more [here]({1}).
+ᴿᵉᵃᵈ ᵗʰᵉ [ˢᶜʰᵉᵈᵘˡᵉ]({1})
 """
 
 with open('webhook.yaml', 'r') as f:
