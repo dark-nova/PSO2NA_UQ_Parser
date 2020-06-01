@@ -8,6 +8,7 @@ import config
 
 AUTHOR = {'name': 'SEGA'}
 
+LINK = 
 
 class UQRSS:
     """RSS feed for Urgent Quests."""
@@ -26,7 +27,7 @@ class UQRSS:
             rel='alternate',
             )
         self.fg.link(
-            href='https://dark-nova.me/pso2/uq.xml',
+            href=LINK,
             rel='self',
             )
         self.fg.language('en-US')

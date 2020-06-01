@@ -11,3 +11,4 @@ uq.xml
 news.db
 news.log
 news.log.[1-5]
+webhook.yaml

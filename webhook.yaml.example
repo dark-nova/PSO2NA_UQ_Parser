@@ -1,0 +1,4 @@
+# This is the webhook ID. It also can be the URL to the webhook on Discord.
+# Example: https://discord.com/api/webhooks/abcdefg
+# It can either be the "abcdefg" here or the entire webhook.
+ID: ''
