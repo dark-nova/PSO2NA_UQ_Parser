@@ -43,7 +43,10 @@ def execute_webhook(dt: pendulum.datetime, uq: str, title: str) -> None:
         "embeds": [
             {
                 "title": f"**{uq}**",
-                "description": MESSAGE.format(dt, title)
+                "description": MESSAGE.format(
+                    dt.to_day_datetime_string(),
+                    title,
+                    )
                 }
             ]
         }

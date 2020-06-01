@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - In [uq.py](uq.py):
     - `UQMainPage` and `UQSchedule` were renamed `MainPage` and `Schedule`, respectively. The `UQ` is already implied with the module name.
+- In [config.py](config.py):
+    - The entire record of UQs is retrieved from the database. Formerly, `results` were used in [uq.py](uq.py) and [rss.py](rss.py). Currently, `rss.py` has not been updated. This point relates to the 2nd bullet point under "Added".
 
 ## [0.1.1] - 2020-05-25
 ### Fixed
