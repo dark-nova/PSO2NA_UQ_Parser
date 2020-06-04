@@ -10,8 +10,6 @@ import config
 
 NEXT = config.NOW + timedelta(minutes=30)
 
-URL = 'https://discord.com/api/webhooks'
-
 MESSAGE = """
 Time: **{0}** (less than 30 minutes)
 
@@ -21,8 +19,6 @@ Time: **{0}** (less than 30 minutes)
 with open('webhook.yaml', 'r') as f:
     CONF = yaml.safe_load(f)
     ID = CONF['ID']
-    if not ID.startswith(URL):
-        ID = f'{URL}/{ID}'
     try:
         LAST = CONF['LAST']
     except KeyError:

@@ -1,4 +1,3 @@
-# This is the webhook ID. It also can be the URL to the webhook on Discord.
-# Example: https://discord.com/api/webhooks/abcdefg
-# It can either be the "abcdefg" here or the entire webhook.
+# This must be a full URL to POST.
 ID: ''
+# Do not manually create a 'LAST' field.
