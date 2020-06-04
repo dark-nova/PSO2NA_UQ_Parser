@@ -43,7 +43,11 @@ def parse_date(month: int, day: int) -> Tuple[int, int, int]:
     """Parse a date given month and day only and convert to
     a tuple."""
     if month < config.TODAY.month:
-        year = config.TODAY.year #+ 1
+        # Note that if you have not yet recorded/cached the current
+        # records, you should comment out the +1. The +1 is only
+        # meant to increment for future events that happen in
+        # the new year.
+        year = config.TODAY.year + 1
     else:
         year = config.TODAY.year
     return year, month, day
