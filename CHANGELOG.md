@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.0] - 2020-06-04
+### Added
+- Added a new function `MainPage.delete_old()` in [uq.py](uq.py) that deletes schedules (and their associated UQs) if the schedule is no longer found on the main page. This is run in [main.py](main.py). Note that if `MainPage.parse()` is not called prior, `delete_old()` *will* error.
+
+### Changed
+- Uncommented a `+ 1` to `parse_date()` in [uq.py](uq.py) for years. The +1 is meant for incrementing year for future events in the new year. e.g. the script is run in December and found a new schedule in January. The year will be bumped up based on months (`12` and  `1` respectively). If results have not been cached or updated, comment out the `+ 1`.
+- Webhooks are now generic, no longer tied to *Discord*, as long as the method is `POST`. Consequently, this means you should use the full URL in the configuration, not just the ID.
+
 ## [1.0.0] - 2020-05-31
 ### Added
 - Added *[Discord][DISCORD]* [webhook](webhook.py) support. Set this up by copying [webhook.yaml.example](webhook.yaml.example) to `webhook.yaml` and fill out the ID of the webhook. This project is not affiliated or endorsed by *[Discord][DISCORD]*.
