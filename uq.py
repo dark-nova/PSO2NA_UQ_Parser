@@ -280,26 +280,47 @@ class MainPage:
             with open(EXAMPLE_MAIN, 'r') as example:
                 self.soup = BeautifulSoup(example, 'html.parser')
         try:
-            self.last_schedule = config.RESULTS[0][2]
+            self.schedules = {result[2]: result[3] for result in config.RESULTS}
         except TypeError:
-            self.last_schedule = None
+            self.schedules = None
 
-    def parse(self):
+    def parse(self) -> None:
         """Parse the page to find individual schedules."""
+        stop = False
+        self.new_schedules = {}
         news = self.soup.find('div', 'all-news-section')
         for schedule in news.find_all('div', 'content'):
             title = schedule.find('h3', 'title').text
-            if title == self.last_schedule:
-                config.LOGGER.info('Found a matching schedule; stopped.')
-                return
             link = schedule.find('a', 'read-more')
             if not self.is_url:
                 print('Example schedule title:', title)
                 continue
             sched_link = link['onclick'].split("'")[1]
-            sleep(10)
-            s = Schedule(f'{self.URL}/{sched_link}', title=title)
-            s.parse()
+            url = f'{self.URL}/{sched_link}'
+            self.new_schedules[title] = url
+            if title in self.schedules and url == self.schedules[title]:
+                config.LOGGER.info('Found a matching schedule; stopped.')
+                config.LOGGER.info(f'- Match title: {title}')
+                config.LOGGER.info(f'- Match URL:   {url}')
+                stop = True
+            if not stop:
+                sleep(10)
+                s = Schedule(url, title=title)
+                s.parse()
+
+    def delete_old(self) -> None:
+        """Delete old schedules that aren't on the main page."""
+        urls = self.new_schedules.values()
+        for schedule, url in self.schedules:
+            if url not in urls:
+                config.LOGGER.info('Deleting records from the following:')
+                config.LOGGER.info(f'- Title: {schedule}')
+                config.LOGGER.info(f'- URL: {url}')
+                config.CURSOR.execute(
+                    'DELETE FROM UQ WHERE TITLE = ? AND URL = ?',
+                    (schedule, url)
+                    )
+        config.DB.commit()
 
 
 if __name__ == '__main__':

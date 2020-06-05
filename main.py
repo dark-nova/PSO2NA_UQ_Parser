@@ -2,4 +2,6 @@ import uq
 
 
 if __name__ == '__main__':
-    uq.UQMainPage().parse()
+    mp = uq.UQMainPage()
+    mp.parse()
+    mp.delete_old()
