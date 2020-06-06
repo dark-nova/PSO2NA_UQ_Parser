@@ -286,7 +286,6 @@ class MainPage:
 
     def parse(self) -> None:
         """Parse the page to find individual schedules."""
-        stop = False
         self.new_schedules = {}
         news = self.soup.find('div', 'all-news-section')
         for schedule in news.find_all('div', 'content'):
@@ -299,11 +298,10 @@ class MainPage:
             url = f'{self.URL}/{sched_link}'
             self.new_schedules[title] = url
             if title in self.schedules and url == self.schedules[title]:
-                config.LOGGER.info('Found a matching schedule; stopped.')
+                config.LOGGER.info('Found a matching schedule; skipped.')
                 config.LOGGER.info(f'- Match title: {title}')
                 config.LOGGER.info(f'- Match URL:   {url}')
-                stop = True
-            if not stop:
+            else:
                 sleep(10)
                 s = Schedule(url, title=title)
                 s.parse()
@@ -311,7 +309,7 @@ class MainPage:
     def delete_old(self) -> None:
         """Delete old schedules that aren't on the main page."""
         urls = self.new_schedules.values()
-        for schedule, url in self.schedules:
+        for schedule, url in self.schedules.items():
             if url not in urls:
                 config.LOGGER.info('Deleting records from the following:')
                 config.LOGGER.info(f'- Title: {schedule}')
