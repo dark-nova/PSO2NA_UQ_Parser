@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.1] - 2020-06-05
+### Changed
+- Instead of stopping parsing in `MainPage.parse()`, continue to parse, only ignoring existing entries. (They will be skipped.)
+
+### Fixed
+- Fixed incorrect reference to `UQMainPage` (see 1.0.0) in [main.py](main.py).
+- Fixed `self.schedules` not being `self.schedules.items()` in [uq.py](uq.py).
+
 ## [1.1.0] - 2020-06-04
 ### Added
 - Added a new function `MainPage.delete_old()` in [uq.py](uq.py) that deletes schedules (and their associated UQs) if the schedule is no longer found on the main page. This is run in [main.py](main.py). Note that if `MainPage.parse()` is not called prior, `delete_old()` *will* error.
