@@ -49,7 +49,7 @@ def execute_webhook(dt: pendulum.datetime, uq: str, title: str) -> None:
     response = requests.post(ID, json=payload)
     out = {
         'ID': ID,
-        'LAST': LAST,
+        'LAST': str(dt),
         }
     with open('webhook.yaml', 'w') as f:
         yaml.safe_dump(out, stream=f)
@@ -68,26 +68,27 @@ def search_events() -> None:
     if LAST:
         dt_strs = [dt_str for dt_str, uq, title, url in config.RESULTS]
         index = dt_strs.index(LAST)
-        dt_str, uq, title, url = config.RESULTS[index - 1]
+        # dt_str, uq, title, url = config.RESULTS[index - 1]
+        # dt = pendulum.parse(dt_str)
+        # if config.NOW <= dt <= NEXT:
+        #     execute_webhook(dt, uq, url)
+        #     return
+    else:
+        index = None
+    for dt_str, uq, title, url in config.RESULTS[:index]:
         dt = pendulum.parse(dt_str)
-        if config.NOW <= dt <= NEXT:
+        # In reverse chronological order, some events may be ahead.
+        # Those events should be ignored.
+        if dt > NEXT:
+            continue
+        # Likewise, some events will be behind. If an event hasn't
+        # been found in range (they cannot have collisions),
+        # stop looking.
+        elif dt < config.NOW:
+            return
+        else:
             execute_webhook(dt, uq, url)
             return
-    else:
-        for dt_str, uq, title, url in config.RESULTS:
-            dt = pendulum.parse(dt_str)
-            # In reverse chronological order, some events may be ahead.
-            # Those events should be ignored.
-            if dt > NEXT:
-                continue
-            # Likewise, some events will be behind. If an event hasn't
-            # been found in range (they cannot have collisions),
-            # stop looking.
-            elif dt < config.NOW:
-                return
-            else:
-                execute_webhook(dt, uq, url)
-                return
 
 
 if __name__ == '__main__':
