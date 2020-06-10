@@ -41,7 +41,16 @@ NOT_UQ = [
 
 def parse_date(month: int, day: int) -> Tuple[int, int, int]:
     """Parse a date given month and day only and convert to
-    a tuple."""
+    a tuple.
+
+    Args:
+        month (int): 1-index month value (e.g. 1 for January)
+        day (int): a day of the month
+
+    Returns:
+        Tuple[int, int, int]: (year, month, day)
+
+    """
     if month < config.TODAY.month:
         # Note that if you have not yet recorded/cached the current
         # records, you should comment out the +1. The +1 is only
@@ -64,8 +73,16 @@ def parse_date(month: int, day: int) -> Tuple[int, int, int]:
     return year, month, day
 
 
-def parse_special_date(date: str) -> pendulum.datetime:
-    """Parse a date like "February 8th" into pendulum.datetime."""
+def parse_special_date(date: str) -> Callable[[int, int], Tuple[int, int, int]]:
+    """Parse a date like "February 8th" into pendulum.datetime.
+
+    Args:
+        date (str): a date like "1/1" representing January 1
+
+    Returns:
+        Callable[[int, int], Tuple[int, int, int]]: return `parse_date()`
+
+    """
     month, day = date.split(' ')[:2]
     month = MONTHS.index(month) + 1
     day = int(N.search(day).group(0))
@@ -73,7 +90,16 @@ def parse_special_date(date: str) -> pendulum.datetime:
 
 
 def convert_time(time: str, ampm: str) -> Tuple[int, int]:
-    """Convert time given "HH:MM" to 24h format."""
+    """Convert time given "HH:MM" to 24h format.
+
+    Args:
+        time (str): a time like "12:00" without ampm
+        ampm (str): either "am" or "pm"
+
+    Returns:
+        Tuple[int, int]: (hour, minute) in 24h time format
+
+    """
     hour, minute = [int(n) for n in time.split(':')]
     hour %= 12
     if ampm == 'pm':
@@ -81,25 +107,61 @@ def convert_time(time: str, ampm: str) -> Tuple[int, int]:
     return hour, minute
 
 
-def parse_time(time: str) -> Tuple[int, int]:
-    """Parse time like "1:00 AM" and convert."""
+def parse_time(time: str) -> Callable[[str, str], Tuple[int, int]]:
+    """Parse time like "1:00 AM" and convert.
+
+    Args:
+        time (str): a time like "12:00am"
+
+    Returns:
+        Callable[[str, str], Tuple[int, int]]: return `convert_time()`
+
+    """
     time, ampm = time.split(' ')
     return convert_time(time, ampm.lower())
 
 
-def parse_time_range(time: str) -> Tuple[int, int]:
-    """Parse time like "0:00 - 0:30am" and convert."""
+def parse_time_range(time: str) -> Callable[[str, str], Tuple[int, int]]:
+    """Parse time like "0:00 - 0:30am" and convert.
+
+    Args:
+        time (str): a time range like "12:00am - 1:00pm"
+
+    Returns:
+        Callable[[str, str], Tuple[int, int]]: return `convert_time()`
+
+    """
     start, end = [TIME.search(t).group(0) for t in time.split(' – ')]
     return convert_time(start, AMPM.search(end).group(0))
 
 
 def is_not_uq(uq: str) -> bool:
-    """Is the UQ actually not a UQ? Filter by name here."""
+    """Is the UQ actually not a UQ? Filter by name here.
+
+    Args:
+        uq (str): name of the UQ
+
+    Returns:
+        bool: whether the UQ is actually a UQ
+
+    """
     return uq in NOT_UQ
 
 
 def get_uq_from_cell(cell: Tag, colors: Dict[str, str]) -> Union[str, None]:
-    """Get a UQ from a cell given the cell's color."""
+    """Get a UQ from a cell given the cell's color.
+
+    Args:
+        cell (Tag): a cell in a table representing a UQ; its attributes
+            include the color which is extracted
+        colors (Dict[str, str]): a dictionary mapping colors from a key
+            to UQs; cells must either match a color here or be ignored
+
+    Returns:
+        str: if valid, the UQ name associated with a color
+        None: if no colors were matched; probably an empty cell
+
+    """
     for attr in cell['style'].split(';'):
         if not attr:
             continue
@@ -127,6 +189,9 @@ def get_hex_color_from_cell(cell: Tag) -> str:
     Args:
         cell (Tag): a <td> element containing only a color
 
+    Returns:
+        str: a hex format string representing a color
+
     """
     for attr in cell['style'].split(';'):
         if not attr:
@@ -145,7 +210,15 @@ def get_hex_color_from_cell(cell: Tag) -> str:
 
 
 def get_colors_from_table(table: Tag) -> Dict[str, str]:
-    """Map a color from RGB to HEX to its UQ."""
+    """Map a color from RGB to HEX to its UQ.
+
+    Args:
+        table (Tag): represents a HTML table of a color key
+
+    Returns:
+        Dict[str, str]: a dictionary mapping colors to UQs
+
+    """
     colors = {}
     for row in table.find_all('tr'):
         col_color, col_uq = row.find_all('td')
