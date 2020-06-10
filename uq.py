@@ -2,7 +2,7 @@ import re
 import sqlite3
 from math import ceil
 from time import sleep
-from typing import Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 import pendulum
 import requests

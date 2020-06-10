@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.1.2] - UNRELEASED
+## [1.1.2] - 2020-06-10
 ### Changed
 - In [uq.py](uq.py):
     - `parse_date()` now considers cases where a schedule contains an event in the past year (e.g. December) posted in the new year (e.g. January).
