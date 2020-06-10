@@ -3,6 +3,7 @@ import logging.handlers
 import sqlite3
 
 import pendulum
+import yaml
 
 
 LOGGER = logging.getLogger('pso2_news')
@@ -50,3 +51,22 @@ for table, schema in SCHEMA.items():
 
 CURSOR.execute('SELECT * FROM UQ')
 RESULTS = sorted(CURSOR.fetchall(), reverse=True)
+
+
+try:
+    with open('main.yaml', 'r') as f:
+        yaml.safe_load(f)['FIRST_RUN']
+        FIRST_RUN = False
+except (FileNotFoundError, KeyError, TypeError):
+    FIRST_RUN = True
+    LOGGER.info(
+        'This is a first run. '
+        'A first run will make subtle changes to the year of UQs.'
+        )
+
+
+def write_main() -> None:
+    """Write main configuration yaml."""
+    if config.FIRST_RUN:
+        with open('main.yaml', 'w') as f:
+            yaml.safe_dump({'FIRST_RUN': False})
