@@ -313,19 +313,18 @@ class MainPage:
                 s = Schedule(url, title=title)
                 s.parse()
 
-    def delete_old(self) -> None:
-        """Delete old schedules that aren't on the main page."""
-        urls = self.new_schedules.values()
-        for schedule, url in self.schedules.items():
-            if url not in urls:
-                config.LOGGER.info('Deleting records from the following:')
-                config.LOGGER.info(f'- Title: {schedule}')
-                config.LOGGER.info(f'- URL: {url}')
-                config.CURSOR.execute(
-                    'DELETE FROM UQ WHERE TITLE = ? AND URL = ?',
-                    (schedule, url)
-                    )
-        config.DB.commit()
+        if self.is_url:
+            urls = self.new_schedules.values()
+            for schedule, url in self.schedules.items():
+                if url not in urls:
+                    config.LOGGER.info('Deleting records from the following:')
+                    config.LOGGER.info(f'- Title: {schedule}')
+                    config.LOGGER.info(f'- URL: {url}')
+                    config.CURSOR.execute(
+                        'DELETE FROM UQ WHERE TITLE = ? AND URL = ?',
+                        (schedule, url)
+                        )
+            config.DB.commit()
 
 
 if __name__ == '__main__':
