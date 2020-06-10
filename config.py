@@ -67,6 +67,6 @@ except (FileNotFoundError, KeyError, TypeError):
 
 def write_main() -> None:
     """Write main configuration yaml."""
-    if config.FIRST_RUN:
+    if FIRST_RUN:
         with open('main.yaml', 'w') as f:
             yaml.safe_dump({'FIRST_RUN': False})
