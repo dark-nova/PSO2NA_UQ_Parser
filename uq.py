@@ -48,12 +48,16 @@ def parse_date(month: int, day: int) -> Tuple[int, int, int]:
         # meant to increment for future events that happen in
         # the new year.
         year = config.TODAY.year + 1
-    elif month > config.TODAY.month:
+    elif month - config.TODAY.month > 1:
         # I realized that on June 10th, 2020, the schedule for UQs was
         # posted June 10th but included June 9th (which had passed).
         # There is a distinct possibility that this will happen again,
         # when the schedule is posted on New Year's Day (around there)
-        # and includes a day for December.
+        # and includes a day for December. Because events are only
+        # at most a month away in the future, we should check whether
+        # the difference in months is greater than 1.
+        # e.g. 12 - 1 > 1 to represent December of previous year and
+        # January of the current year
         year = config.TODAY.year - 1
     else:
         year = config.TODAY.year
