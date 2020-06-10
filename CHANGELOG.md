@@ -3,6 +3,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.2] - UNRELEASED
+### Changed
+- In [uq.py](uq.py):
+    - `parse_date()` now considers cases where a schedule contains an event in the past year (e.g. December) posted in the new year (e.g. January).
+    - Combine `MainPage.delete_old()` with `MainPage.parse()` since `delete_old()` required `parse()` anyway.
+- In [webhook.py](webhook.py):
+    - Instead of only checking the direct next event, limit the results based on `LAST` known index.
+
+### Fixed
+- Added a specific check in `get_uq_from_cell()` for a hard-coded mismatch in colors (key and schedule colors differ).
+- `webhook.execute_webhook()` should now update the `LAST` selected event.
+
 ## [1.1.1] - 2020-06-05
 ### Changed
 - Instead of stopping parsing in `MainPage.parse()`, continue to parse, only ignoring existing entries. (They will be skipped.)
