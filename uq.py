@@ -38,6 +38,9 @@ NOT_UQ = [
     "Server Shutdown (End of the Closed Beta Test)",
     ]
 
+# hex string: tuple of int
+KEY_COLORS = {}
+
 
 def parse_date(month: int, day: int) -> Tuple[int, int, int]:
     """Parse a date given month and day only and convert to
@@ -148,7 +151,9 @@ def is_not_uq(uq: str) -> bool:
     return uq in NOT_UQ
 
 
-def get_uq_from_cell(cell: Tag, colors: Dict[str, str]) -> Union[str, None]:
+def get_uq_from_cell(
+    cell: Tag, colors: Dict[str, str]
+    ) -> Union[str, Callable[[str, Dict[str, str]], Union[str, None]]]:
     """Get a UQ from a cell given the cell's color.
 
     Args:
@@ -159,7 +164,9 @@ def get_uq_from_cell(cell: Tag, colors: Dict[str, str]) -> Union[str, None]:
 
     Returns:
         str: if valid, the UQ name associated with a color
-        None: if no colors were matched; probably an empty cell
+        Callable[..., Union[str, None]]: if the specified color wasn't
+            found, return the result of `get_closest_color()`; can be
+            str or None
 
     """
     for attr in cell['style'].split(';'):
@@ -179,7 +186,7 @@ def get_uq_from_cell(cell: Tag, colors: Dict[str, str]) -> Union[str, None]:
                 # 4F2CD0.
                 if color == '#4F2CD0':
                     return colors['#341D8B']
-                return
+                return get_closest_color(color, colors)
 
 
 def get_hex_color_from_cell(cell: Tag) -> str:
@@ -200,9 +207,12 @@ def get_hex_color_from_cell(cell: Tag) -> str:
         if a == 'background':
             match = RGB.search(value)
             if match:
+                rgb_int = [int(n) for n in match.group(1, 2, 3)]
                 rgb = '#' + ''.join(
-                    [hex(int(n))[2:] for n in match.group(1, 2, 3)]
+                    [hex(n)[2:] for n in rgb_int]
                     ).upper()
+                if rgb not in KEY_COLORS:
+                    KEY_COLORS[rgb] = rgb_int
                 return rgb
             else:
                 # This is horrifying. Hard-coded colors.
@@ -226,6 +236,59 @@ def get_colors_from_key(table: Tag) -> Dict[str, str]:
         colors[color] = col_uq.text.replace('\xa0', ' ')
 
     return colors
+
+
+def get_closest_color(color: str, colors: Dict[str, str]) -> Union[str, None]:
+    """Get the closest color representation. Only works for hex colors.
+
+        e.g. '#4F2CD0' matches with '#341D8B'
+
+    This is because the UQ schedule appears to use hand-picked colors,
+    so some inconsistencies are present.
+
+    Original comment:
+        Used for example-urgent_quest-2020-06_1.html;
+        Urgent Quest:
+            The Manifested Planetbreaker &
+            The Chant to Cleanse the Calamity (60 minutes)
+        The key color is #341D8B while the schedule color is
+        #4F2CD0.
+
+    Args:
+        color (str): a color representation; should be in hex
+        colors (Dict[str, str]): a dictionary mapping colors from a key
+            to UQs; cells must either match a color here or be ignored
+
+    Returns:
+        str: if valid, the UQ name associated with a color
+        None: if no colors were matched; probably an empty cell
+
+    """
+    # Not a hex color; abort comparison
+    if not color.startswith('#'):
+        return
+    else:
+        color = color.replace('#', '')
+
+    try:
+        rgb_int = [int(f'{x}{y}', base=16) for x, y in grouper(color, 2)]
+    except ValueError:
+        config.LOGGER.warning(f'{color} could not be converted via int()')
+        return
+
+    # Maximum color Euclidean distance between black (#000000) and
+    # white (#FFFFFF)
+    distance = 3 * 255**2
+    closest = None
+
+    for c, uq in colors.items():
+        # Get Euclidean distance of the colors; using square value
+        d = sum([(c1 - c2)**2 for c1, c2 in zip(rgb_int, KEY_COLORS[c])])
+        if d < distance:
+            distance = d
+            closest = uq
+
+    return closest
 
 
 class Schedule:
