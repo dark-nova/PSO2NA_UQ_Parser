@@ -168,8 +168,8 @@ def get_uq_from_cell(cell: Tag, colors: Dict[str, str]) -> Union[str, None]:
         a, value = attr.split(':')
         if a == 'background':
             try:
-                hexcolor = value.strip()
-                return colors[hexcolor]
+                color = value.strip()
+                return colors[color]
             except KeyError:
                 # Another case of hard-coded colors, but incorrect.
                 # Used for example-urgent_quest-2020-06_1.html;
@@ -177,7 +177,7 @@ def get_uq_from_cell(cell: Tag, colors: Dict[str, str]) -> Union[str, None]:
                 #   The Chant to Cleanse the Calamity (60 minutes)
                 # The key color is #341D8B while the schedule color is
                 # 4F2CD0.
-                if hexcolor == '#4F2CD0':
+                if color == '#4F2CD0':
                     return colors['#341D8B']
                 return
 
@@ -209,7 +209,7 @@ def get_hex_color_from_cell(cell: Tag) -> str:
                 return value.strip()
 
 
-def get_colors_from_table(table: Tag) -> Dict[str, str]:
+def get_colors_from_key(table: Tag) -> Dict[str, str]:
     """Map a color from RGB to HEX to its UQ.
 
     Args:
@@ -277,7 +277,7 @@ class Schedule:
                     for col in cols[1:]
                     ]
                 # Skip row 2 (days of the week) and row 3 ("Time (PDT)").
-                color_map = get_colors_from_table(table_b)
+                color_map = get_colors_from_key(table_b)
                 for row in rows[3:]:
                     widths = 0
                     try:
