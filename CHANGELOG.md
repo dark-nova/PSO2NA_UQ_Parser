@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.3] - 2020-06-19
+### Changed
+- In [uq.py](uq.py):
+    - Renamed `hexcolor` in `get_uq_from_cell` to `color`, as the color can be a hard-coded string (e.g. `red`) or a hex representation.
+    - Renamed `get_colors_from_table()` to `get_colors_from_key()`, as `key` is a more accurate descriptor of the HTML table.
+    - Instead of relying on hard-coded colors, a new function `get_closest_color()` was added: this should get the correct UQ if colors don't match exactly between the schedule and the color key.
+
 ## [1.1.2] - 2020-06-10
 ### Changed
 - In [uq.py](uq.py):
