@@ -1,35 +1,32 @@
-# PSO2 News Feed
+# [PSO2NA][PSO2] UQ Parser
 
 ## Overview
 
-TODO
+This project scrapes from the [Urgent Quests main page](https://pso2.com/news/urgent-quests) to parse schedules into a database for easier reading. It works by going through the UQ main page and going through each schedule. If a schedule is not found in the database, meaning no entries in the database have the schedule's URL, the schedule is subsequently scraped for Urgent Quests.
+
+Additionally, webhook and RSS functionality are included. They should be run separately from the main file and only after running the main script.
+
+**Note that RSS functionality may be sunset and deprecated in the future.**
 
 ## Usage
 
-TODO
+Install dependencies, and run [main.py](main.py). Ideally, the script should be run once a day at midnight server time (i.e. `America/Los_Angeles`). **Do not create a `main.yaml`!** If you are running the project for the first time, let the project handle it.
 
-## Requirements
+Once you have at least the main script once, you can run [webhook.py](webhook.py) or [rss.py](rss.py). Like the main script, ideally these should run on a schedule, preferably every half hour (`:00` and `:30`).
+
+## [Requirements](requirements.txt)
 
 This code is designed around the following:
 
 - Python 3.7+
-    - other [requirements](requirements.txt)
-
-## Setup
-
-TODO
-
-⚠️ WARNING/INFO 1
-
-## Live Version
-
-These files are generated/updated every X.
-
-- n/a
+    - `pendulum`
+    - `pyyaml`
+    - `requests`
 
 ## Disclaimer
 
-This project is not affiliated with or endorsed by *[SEGA][SEGA]* or *[Microsoft][MICROSOFT]*. See [LICENSE](LICENSE) for more detail.
+This project is not affiliated with or endorsed by *[PSO2][PSO2]*, *[SEGA][SEGA]*, or *[Microsoft][MICROSOFT]*. See [LICENSE](LICENSE) for more detail.
 
+[PSO2]: https://pso2.com/
 [SEGA]: https://www.sega.com/
 [MICROSOFT]: https://www.microsoft.com/

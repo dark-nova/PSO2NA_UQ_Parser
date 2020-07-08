@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.4] - 2020-07-07
+### Added
+- Added a blacklist. Prior to this change, the scraper would keep opening https://pso2.com/news/urgent-quests/about because the page contained no UQs in the database. The scraper only knows not to scrape if the database contains at least one entry with the URL. The [blacklist](blacklist.yaml) is not meant to be configured separately; please commit changes and/or file a pull request.
+
+### Changed
+- Changed the repo name to **PSO2NA UQ Parser**.
+- Readme now actually contains information!
+
 ## [1.1.3] - 2020-06-19
 ### Changed
 - In [uq.py](uq.py):
