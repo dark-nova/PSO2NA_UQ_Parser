@@ -307,7 +307,7 @@ class Schedule:
                 defaults to None
 
         """
-        config.LOGGER.info(f'Initializing Schedule @ {url_or_file}')
+        config.LOGGER.info(f'Initializing UQ Schedule @ {url_or_file}')
         self.title = title
         self.is_url = is_url
         self.url = url_or_file
@@ -428,7 +428,7 @@ class MainPage:
                 defaults to None
 
         """
-        config.LOGGER.info('Initializing MainPage...')
+        config.LOGGER.info('Initializing UQ MainPage...')
         self.is_url = is_url
         if is_url:
             page = requests.get(self.URL)
@@ -453,6 +453,11 @@ class MainPage:
                 continue
             sched_link = link['onclick'].split("'")[1]
             url = f'{self.URL}/{sched_link}'
+            if url in config.UQ_BLACKLIST:
+                config.LOGGER.info('Found a blacklisted schedule; skipped.')
+                config.LOGGER.info(f'- Match title: {title}')
+                config.LOGGER.info(f'- Match URL:   {url}')
+                continue
             self.new_schedules[title] = url
             if title in self.schedules and url == self.schedules[title]:
                 config.LOGGER.info('Found a matching schedule; skipped.')

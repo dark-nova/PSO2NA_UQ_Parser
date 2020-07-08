@@ -64,9 +64,22 @@ except (FileNotFoundError, KeyError, TypeError):
         'A first run will make subtle changes to the year of UQs.'
         )
 
+with open('blacklist.yaml', 'r') as f:
+    BLACKLIST = yaml.safe_load(f)
+
+try:
+    UQ_BLACKLIST = BLACKLIST['uq']
+except (KeyError, TypeError):
+    UQ_BLACKLIST = []
+    LOGGER.warning('The blacklist is malformed. Please download a new copy.')
+
 
 def write_main() -> None:
-    """Write main configuration yaml."""
+    """Write main configuration yaml.
+
+    Currently, main.yaml should only include a "FIRST_RUN" element.
+
+    """
     if FIRST_RUN:
         with open('main.yaml', 'w') as f:
             yaml.safe_dump({'FIRST_RUN': False})

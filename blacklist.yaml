@@ -1,0 +1,5 @@
+# This file is intended to be part of the project, not a configurable element.
+# If necessary, please contribute blacklist URLs to the project.
+# This file contains URLs to be skipped.
+uq:
+  - 'https://pso2.com/news/urgent-quests/about'
