@@ -3,6 +3,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.5] - 2020-07-18
+### Changed
+- In [uq.py](uq.py):
+    - `get_uq_from_cell()` no longer calls `get_closest_color()` when it doesn't find a match; instead, it will raise the new `MismatchedColor` exception.
+    - `get_closest_color()` now has an optional parameter `is_uq` (default: `True`) to filter events by UQ or other (concerts, etc.). Related to #1.
+    - `get_closest_color()` is now called by `Schedule.parse()`; `Schedule.parse()` will check whether a prior event is listed in a schedule before determining whether an event is a UQ or something else.
+
+### Fixed
+- #1 - In [uq.py](uq.py), `get_closest_color()` now properly identifies the appropriate "closest" color. For example, if an event was intended to be a concert but its closest color was an urgent quest, the concert should now be picked instead. For more context, look up issue #1 on GitHub.
+
 ## [1.1.4] - 2020-07-07
 ### Added
 - Added a blacklist. Prior to this change, the scraper would keep opening https://pso2.com/news/urgent-quests/about because the page contained no UQs in the database. The scraper only knows not to scrape if the database contains at least one entry with the URL. The [blacklist](blacklist.yaml) is not meant to be configured separately; please commit changes and/or file a pull request.
