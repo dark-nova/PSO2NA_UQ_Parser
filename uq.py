@@ -369,7 +369,7 @@ class Schedule:
                             else:
                                 # Only UQs start at the top of the hour.
                                 is_uq = True
-                            uq = get_closest_color(e.color, colors, is_uq)
+                            uq = get_closest_color(e.color, color_map, is_uq)
 
                         if not uq:
                             continue
