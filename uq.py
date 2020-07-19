@@ -1,5 +1,6 @@
 import re
 import sqlite3
+from datetime import timedelta
 from math import ceil
 from time import sleep
 from typing import Callable, Dict, List, Tuple, Union
@@ -151,9 +152,7 @@ def is_not_uq(uq: str) -> bool:
     return uq in NOT_UQ
 
 
-def get_uq_from_cell(
-    cell: Tag, colors: Dict[str, str]
-    ) -> Union[str, Callable[[str, Dict[str, str]], Union[str, None]]]:
+def get_uq_from_cell(cell: Tag, colors: Dict[str, str]) -> str:
     """Get a UQ from a cell given the cell's color.
 
     Args:
@@ -164,9 +163,10 @@ def get_uq_from_cell(
 
     Returns:
         str: if valid, the UQ name associated with a color
-        Callable[..., Union[str, None]]: if the specified color wasn't
-            found, return the result of `get_closest_color()`; can be
-            str or None
+
+    Raises:
+        MismatchedColor: if the specified color wasn't found, raise the
+            exception to pass the color, check in `get_closest_color`.
 
     """
     for attr in cell['style'].split(';'):
@@ -178,15 +178,7 @@ def get_uq_from_cell(
                 color = value.strip()
                 return colors[color]
             except KeyError:
-                # Another case of hard-coded colors, but incorrect.
-                # Used for example-urgent_quest-2020-06_1.html;
-                # Urgent Quest:  The Manifested Planetbreaker &
-                #   The Chant to Cleanse the Calamity (60 minutes)
-                # The key color is #341D8B while the schedule color is
-                # 4F2CD0.
-                if color == '#4F2CD0':
-                    return colors['#341D8B']
-                return get_closest_color(color, colors)
+                raise MismatchedColor(color)
 
 
 def get_hex_color_from_cell(cell: Tag) -> str:
@@ -238,7 +230,9 @@ def get_colors_from_key(table: Tag) -> Dict[str, str]:
     return colors
 
 
-def get_closest_color(color: str, colors: Dict[str, str]) -> Union[str, None]:
+def get_closest_color(
+    color: str, colors: Dict[str, str], is_uq: bool = True
+    ) -> Union[str, None]:
     """Get the closest color representation. Only works for hex colors.
 
         e.g. '#4F2CD0' matches with '#341D8B'
@@ -258,6 +252,8 @@ def get_closest_color(color: str, colors: Dict[str, str]) -> Union[str, None]:
         color (str): a color representation; should be in hex
         colors (Dict[str, str]): a dictionary mapping colors from a key
             to UQs; cells must either match a color here or be ignored
+        is_uq (bool, optional): whether to limit to UQs xor concerts;
+            defaults to True
 
     Returns:
         str: if valid, the UQ name associated with a color
@@ -282,6 +278,8 @@ def get_closest_color(color: str, colors: Dict[str, str]) -> Union[str, None]:
     closest = None
 
     for c, uq in colors.items():
+        if uq.startswith('Urgent Quest:') ^ is_uq:
+            continue
         # Get Euclidean distance of the colors; using square value
         d = sum([(c1 - c2)**2 for c1, c2 in zip(rgb_int, KEY_COLORS[c])])
         if d < distance:
@@ -289,6 +287,12 @@ def get_closest_color(color: str, colors: Dict[str, str]) -> Union[str, None]:
             closest = uq
 
     return closest
+
+
+class MismatchedColor(ValueError):
+    """A mismatched color was found."""
+    def __init__(self, color: str) -> None:
+        self.color = color
 
 
 class Schedule:
@@ -349,16 +353,27 @@ class Schedule:
                          # Some tables have empty rows under the table. Why.
                          continue
                     for cell in row.find_all('td')[1:]:
-                        uq = get_uq_from_cell(cell, color_map)
                         widths += float(cell['width'].strip('%'))
+                        dt = pendulum.datetime(
+                            *(dates[ceil(widths/width) - 1] + time),
+                            tz='America/Los_Angeles'
+                            )
+                        try:
+                            uq = get_uq_from_cell(cell, color_map)
+                        except MismatchedColor as e:
+                            if dt.minute == 30:
+                                dt0 = dt + timedelta(minutes=-30)
+                                # If an entry in the schedule exists 30min
+                                # prior to this entry, it's a 60min UQ.
+                                is_uq = dt0 in self.schedule
+                            else:
+                                # Only UQs start at the top of the hour.
+                                is_uq = True
+                            uq = get_closest_color(e.color, colors, is_uq)
+
                         if not uq:
                             continue
-                        self.schedule[
-                            pendulum.datetime(
-                                *(dates[ceil(widths/width) - 1] + time),
-                                tz='America/Los_Angeles'
-                                )
-                            ] = uq
+                        self.schedule[dt] = uq
 
         self.write_to_db()
 
