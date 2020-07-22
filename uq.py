@@ -208,7 +208,12 @@ def get_hex_color_from_cell(cell: Tag) -> str:
                 return rgb
             else:
                 # This is horrifying. Hard-coded colors.
-                return value.strip()
+                color = value.strip()
+                if color == 'black':
+                    color = '#000000'
+                    if color not in KEY_COLORS:
+                        KEY_COLORS[color] = (0, 0, 0)
+                return color
 
 
 def get_colors_from_key(table: Tag) -> Dict[str, str]:
@@ -369,6 +374,8 @@ class Schedule:
                             else:
                                 # Only UQs start at the top of the hour.
                                 is_uq = True
+                            if e.color == 'black':
+                                e.color = '#000000'
                             uq = get_closest_color(e.color, color_map, is_uq)
 
                         if not uq:
