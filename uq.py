@@ -32,6 +32,7 @@ N = re.compile(r'[0-9]+')
 RGB = re.compile(r'([0-9]+), ([0-9]+), ([0-9]+)')
 TIME = re.compile(r'[0-9]{1,2}:[0-9][0-9]([ap]m)?', re.I)
 AMPM = re.compile(r'[ap]m', re.I)
+DT = re.compile(r'Time (.*)')
 
 NOT_UQ = [
     "Server Maintenance (Users won't be able to log in)",
@@ -348,6 +349,10 @@ class Schedule:
                     parse_date(*[int(n) for n in col.text.split('/')])
                     for col in cols[1:]
                     ]
+                timezones = 0
+                for cell in rows[2].find_all('td'):
+                    if DT.search(cell.text):
+                        timezones += 1
                 # Skip row 2 (days of the week) and row 3 ("Time (PDT)").
                 color_map = get_colors_from_key(table_b)
                 for row in rows[3:]:
@@ -357,7 +362,7 @@ class Schedule:
                     except ValueError:
                          # Some tables have empty rows under the table. Why.
                          continue
-                    for cell in row.find_all('td')[1:]:
+                    for cell in row.find_all('td')[timezones:]:
                         widths += float(cell['width'].strip('%'))
                         dt = pendulum.datetime(
                             *(dates[ceil(widths/width) - 1] + time),
@@ -417,6 +422,7 @@ class Schedule:
 
     def write_to_db(self) -> None:
         """Write the schedule to DB."""
+        records_in = 0
         config.CURSOR.execute('SELECT DATE FROM UQ')
         dates = config.CURSOR.fetchall()
         for date, uq in self.schedule.items():
@@ -425,14 +431,16 @@ class Schedule:
                     'INSERT INTO UQ VALUES (?, ?, ?, ?)',
                     (str(date), uq, self.title, self.url)
                     )
+                records_in += 1
             except sqlite3.IntegrityError:
-                # config.LOGGER.info(
-                #     f'{date} (UQ: {uq}) was found in the DB! Skipped.'
-                #     )
+                config.LOGGER.info(
+                    f'{date} (UQ: {uq}) was found in the DB! Skipped.'
+                    )
                 continue
 
         if self.is_url:
             config.DB.commit()
+            config.LOGGER.info(f'Wrote {records_in} records into database.')
         else:
             print('Example results:', self.schedule)
 
