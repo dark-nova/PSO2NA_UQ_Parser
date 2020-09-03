@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.1.7] - 2020-09-03
+### Fixed
+- #2 - The schedule for 2020-09-01 introduces a new column in every time table for times in GMT; to address this, the code now counts how many columns contain "Time (.*)" (regex) to accurately offset the cell checking.
+
 ## [1.1.6] - 2020-07-22
 ### Fixed
 - In [uq.py](uq.py), `black` as a color background no longer causes `KeyError` while comparing Euclidean color distances.
