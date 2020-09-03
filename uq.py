@@ -33,6 +33,7 @@ RGB = re.compile(r'([0-9]+), ([0-9]+), ([0-9]+)')
 TIME = re.compile(r'[0-9]{1,2}:[0-9][0-9]([ap]m)?', re.I)
 AMPM = re.compile(r'[ap]m', re.I)
 DT = re.compile(r'Time (.*)')
+PSDT = re.compile(r'P[^T]*T')
 
 NOT_UQ = [
     "Server Maintenance (Users won't be able to log in)",
@@ -350,15 +351,18 @@ class Schedule:
                     for col in cols[1:]
                     ]
                 timezones = 0
-                for cell in rows[2].find_all('td'):
+                pacific = 0
+                for i, cell in enumerate(rows[2].find_all('td')):
                     if DT.search(cell.text):
                         timezones += 1
+                        if PSDT.search(cell.text):
+                            pacific = i
                 # Skip row 2 (days of the week) and row 3 ("Time (PDT)").
                 color_map = get_colors_from_key(table_b)
                 for row in rows[3:]:
                     widths = 0
                     try:
-                        time = parse_time(row.find('td').text)
+                        time = parse_time(row.find_all('td')[pacific].text)
                     except ValueError:
                          # Some tables have empty rows under the table. Why.
                          continue
