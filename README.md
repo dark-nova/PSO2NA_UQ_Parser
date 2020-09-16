@@ -1,5 +1,13 @@
 # [PSO2NA][PSO2] UQ Parser
 
+---
+
+# This repo will be archived.
+
+As of 2020-09-15, the new schedules are posted on Google Calendar, and the means to parse calendars in Google Calendar are not worth the effort to fix. Because of this change, this repo is no longer useful. For more information, see issue #3 (pinned). For historic reasons, the old README will continue below.
+
+---
+
 ## Overview
 
 This project scrapes from the [Urgent Quests main page](https://pso2.com/news/urgent-quests) to parse schedules into a database for easier reading. It works by going through the UQ main page and going through each schedule. If a schedule is not found in the database, meaning no entries in the database have the schedule's URL, the schedule is subsequently scraped for Urgent Quests.
